@@ -1,6 +1,7 @@
 import dagster as dg
 import pandas as pd
 from typing import Optional
+from shared import data_quality_monitor, alert_notifier, log_asset_metadata
 
 class AzureDWEnrichment(dg.Component, dg.Model, dg.Resolvable):
     """Azure DW Claims Enrichment Component.
@@ -35,11 +36,14 @@ class AzureDWEnrichment(dg.Component, dg.Model, dg.Resolvable):
                 "database": database
             }
         )
-        def enriched_claims_data(context: dg.AssetExecutionContext) -> pd.DataFrame:
+        def enriched_claims_data(
+            context: dg.AssetExecutionContext,
+            data_quality_monitor: dict,
+        ) -> pd.DataFrame:
             if demo_mode:
                 context.log.info(f"Demo mode: enriching claims with policy data")
                 # Simulate enriched claims with policy details
-                return pd.DataFrame({
+                df = pd.DataFrame({
                     "claim_id": [f"CLM_{i:06d}" for i in range(1, 501)],
                     "policy_id": [f"POL_{(i % 200):05d}" for i in range(1, 501)],
                     "claim_amount": [1000.0 + (i * 47.3) % 50000 for i in range(500)],
@@ -50,8 +54,23 @@ class AzureDWEnrichment(dg.Component, dg.Model, dg.Resolvable):
                     "customer_segment": ["HIGH_VALUE" if i % 5 == 0 else "MEDIUM_VALUE" if i % 5 < 3 else "STANDARD" for i in range(500)],
                     "prior_claims_count": [i % 5 for i in range(500)]
                 })
+
+                # Use shared data quality monitoring
+                if data_quality_monitor["monitor"](df):
+                    context.log.info(f"Data quality check passed for enriched claims")
+
+                # Use shared metadata logging utility
+                log_asset_metadata(context, df)
+
+                return df
             else:
                 context.log.info(f"Production mode: enriching via Azure DW {enrichment_name}")
                 pass  # Production Azure DW enrichment would go here
 
-        return dg.Definitions(assets=[enriched_claims_data])
+        return dg.Definitions(
+            assets=[enriched_claims_data],
+            resources={
+                "data_quality_monitor": data_quality_monitor,
+                "alert_notifier": alert_notifier,
+            }
+        )

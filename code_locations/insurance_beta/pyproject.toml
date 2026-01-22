@@ -8,6 +8,7 @@ dependencies = [
     "dagster-azure",
     "dagster-databricks",
     "pandas",
+    "shared",
 ]
 
 [dependency-groups]

@@ -139,6 +139,43 @@ All components run in **demo mode** by default:
 
 To use with real infrastructure, set `demo_mode: false` in the component YAML files under `code_locations/*/defs/` and provide actual credentials.
 
+## Shared Resources Pattern
+
+This demo demonstrates sharing common resources across multiple code locations using the `shared` package.
+
+### How It Works
+
+The `shared/` directory is a regular Python package (not a code location) that exports reusable resources:
+
+```python
+# Other code locations import from shared
+from shared import data_quality_monitor, alert_notifier, log_asset_metadata
+
+# Use in asset definitions
+@dg.asset
+def my_asset(context, data_quality_monitor: dict):
+    # Use shared resource
+    if data_quality_monitor["monitor"](df):
+        context.log.info("Quality check passed")
+```
+
+### Shared Resources Available
+
+- **data_quality_monitor** - Centralized data quality checking across all code locations
+- **alert_notifier** - Common alerting for critical pipeline issues
+- **log_asset_metadata()** - Utility function for consistent metadata logging
+
+### Used By
+
+- `healthcare_gamma` - Uses all shared resources in patient pipeline
+- `insurance_beta` - Uses data quality monitoring in claims enrichment
+
+This pattern allows you to:
+- Define common resources once, use them everywhere
+- Ensure consistent monitoring and alerting across all business units
+- Reduce code duplication
+- Centralize resource configuration
+
 ## Component Architecture
 
 This demo uses Dagster's component system for reusable pipeline patterns:

@@ -1,5 +1,6 @@
 import dagster as dg
 import pandas as pd
+from shared import data_quality_monitor, alert_notifier, log_asset_metadata
 
 
 @dg.asset(
@@ -7,10 +8,15 @@ import pandas as pd
     kinds={"ehr", "on_prem"},
     description="Raw patient records from on-premises EHR system"
 )
-def raw_patient_records(context: dg.AssetExecutionContext) -> pd.DataFrame:
+def raw_patient_records(
+    context: dg.AssetExecutionContext,
+    data_quality_monitor: dict,
+    alert_notifier: dict,
+) -> pd.DataFrame:
     """Ingest patient records from legacy on-prem EHR system."""
     context.log.info("Demo mode: generating mock patient records")
-    return pd.DataFrame({
+
+    df = pd.DataFrame({
         "patient_id": [f"PAT_{i:06d}" for i in range(1, 1001)],
         "age": [18 + (i % 80) for i in range(1000)],
         "diagnosis_code": [f"ICD10_{i % 100:03d}" for i in range(1000)],
@@ -19,6 +25,15 @@ def raw_patient_records(context: dg.AssetExecutionContext) -> pd.DataFrame:
         "provider_id": [f"DOC_{i % 50:03d}" for i in range(1000)]
     })
 
+    # Use shared data quality monitoring
+    if data_quality_monitor["monitor"](df):
+        context.log.info(f"Data quality check passed ({len(df)} records)")
+
+    # Use shared metadata logging utility
+    log_asset_metadata(context, df)
+
+    return df
+
 
 @dg.asset(
     group_name="healthcare_gamma",
@@ -26,7 +41,11 @@ def raw_patient_records(context: dg.AssetExecutionContext) -> pd.DataFrame:
     deps=[raw_patient_records],
     description="HIPAA-compliant patient data with PII redaction"
 )
-def hipaa_compliant_records(context: dg.AssetExecutionContext, raw_patient_records: pd.DataFrame) -> pd.DataFrame:
+def hipaa_compliant_records(
+    context: dg.AssetExecutionContext,
+    raw_patient_records: pd.DataFrame,
+    alert_notifier: dict,
+) -> pd.DataFrame:
     """Apply HIPAA compliance transformations and PII redaction."""
     context.log.info("Applying HIPAA compliance rules and PII redaction")
 
@@ -35,6 +54,15 @@ def hipaa_compliant_records(context: dg.AssetExecutionContext, raw_patient_recor
     df["patient_id_hash"] = df["patient_id"].apply(lambda x: f"HASH_{hash(x) % 1000000:06d}")
     df = df.drop(columns=["patient_id"])
     df["age_bucket"] = df["age"].apply(lambda x: "18-30" if x < 30 else "30-50" if x < 50 else "50-70" if x < 70 else "70+")
+
+    # Use shared alert notifier for compliance verification
+    alert_notifier["send_alert"](
+        f"HIPAA compliance applied: {len(df)} records processed, PII redacted",
+        severity="info"
+    )
+
+    # Use shared metadata logging utility
+    log_asset_metadata(context, df)
 
     return df
 

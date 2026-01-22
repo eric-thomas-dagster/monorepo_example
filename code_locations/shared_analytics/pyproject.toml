@@ -6,6 +6,7 @@ dependencies = [
     "dagster==1.12.10",
     "dagster-cloud",
     "pandas",
+    "shared",
 ]
 
 [dependency-groups]
