@@ -584,22 +584,12 @@ dagster-cloud serverless deploy-python-executable \
 
 For **Dagster+ Hybrid** (running on your own infrastructure):
 
+⚠️ **Note:** Hybrid deployment requires Docker images. PEX builds are not supported for Hybrid.
+
 1. **Set up Hybrid agent** in your infrastructure (Kubernetes, ECS, Docker, etc.)
    - Follow the [Hybrid deployment guide](https://docs.dagster.io/dagster-plus/deployment/hybrid)
 
-2. **Deploy with PEX:**
-```bash
-cd code_locations/fintech_alpha
-
-dagster-cloud hybrid deploy-python-executable \
-    --organization YOUR_ORG \
-    --api-token "YOUR_API_TOKEN" \
-    --deployment prod \
-    --location-file dagster_cloud.yaml \
-    --location-name fintech-alpha
-```
-
-3. **Deploy with Docker:**
+2. **Deploy with Docker:**
 ```bash
 cd code_locations/fintech_alpha
 
