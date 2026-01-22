@@ -1,0 +1,7 @@
+type: fintech_alpha.components.s3_ingestion.S3Ingestion
+
+attributes:
+  bucket_name: fintech-data-lake
+  prefix: raw/customer_transactions
+  demo_mode: true
+  aws_region: us-east-1

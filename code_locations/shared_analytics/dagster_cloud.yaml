@@ -1,0 +1,6 @@
+locations:
+  - location_name: shared-analytics
+    code_source:
+      python_file: shared_analytics/definitions.py
+    build:
+      directory: .

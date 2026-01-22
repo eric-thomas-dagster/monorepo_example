@@ -1,0 +1,8 @@
+type: insurance_beta.components.fraud_detection.FraudDetection
+
+attributes:
+  model_name: claims_fraud
+  upstream_asset: enriched_claims
+  demo_mode: true
+  databricks_workspace_url: null
+  model_serving_endpoint: null

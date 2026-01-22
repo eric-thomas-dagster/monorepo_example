@@ -1,0 +1,6 @@
+locations:
+  - location_name: healthcare-gamma
+    code_source:
+      python_file: healthcare_gamma/definitions.py
+    build:
+      directory: .

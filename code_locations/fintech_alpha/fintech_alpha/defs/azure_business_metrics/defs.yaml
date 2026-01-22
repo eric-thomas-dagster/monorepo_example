@@ -1,0 +1,8 @@
+type: fintech_alpha.components.azure_dw_aggregation.AzureDWAggregation
+
+attributes:
+  aggregation_name: business_metrics
+  upstream_asset: analytics_churn_prediction
+  demo_mode: true
+  azure_dw_server: null
+  database: null

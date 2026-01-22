@@ -1,0 +1,6 @@
+locations:
+  - location_name: shared
+    code_source:
+      python_file: shared/definitions.py
+    build:
+      directory: .

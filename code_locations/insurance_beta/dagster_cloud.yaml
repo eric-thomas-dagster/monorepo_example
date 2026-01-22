@@ -1,0 +1,6 @@
+locations:
+  - location_name: insurance-beta
+    code_source:
+      python_file: insurance_beta/definitions.py
+    build:
+      directory: .

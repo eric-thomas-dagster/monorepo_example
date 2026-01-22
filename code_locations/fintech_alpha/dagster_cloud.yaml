@@ -1,0 +1,6 @@
+locations:
+  - location_name: fintech-alpha
+    code_source:
+      python_file: fintech_alpha/definitions.py
+    build:
+      directory: .

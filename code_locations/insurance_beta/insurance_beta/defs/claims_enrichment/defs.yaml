@@ -1,0 +1,8 @@
+type: insurance_beta.components.azure_dw_enrichment.AzureDWEnrichment
+
+attributes:
+  enrichment_name: claims
+  upstream_asset: streaming_insurance_claims
+  demo_mode: true
+  azure_dw_server: null
+  database: null

@@ -1,0 +1,9 @@
+type: fintech_alpha.components.matillion_transformation.MatillionTransformation
+
+attributes:
+  job_name: customer_aggregation
+  upstream_asset: s3_raw_raw_customer_transactions
+  demo_mode: true
+  matillion_instance_url: https://matillion.fintech-alpha.internal
+  project_name: FinTech_DataOps
+  environment: production

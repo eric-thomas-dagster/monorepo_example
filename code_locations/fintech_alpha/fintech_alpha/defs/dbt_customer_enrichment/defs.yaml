@@ -1,0 +1,7 @@
+type: fintech_alpha.components.dbt_transformation.DbtTransformation
+
+attributes:
+  model_name: customer_enrichment
+  upstream_asset: matillion_customer_aggregation
+  demo_mode: true
+  dbt_project_path: null

@@ -1,0 +1,8 @@
+type: fintech_alpha.components.databricks_analytics.DatabricksAnalytics
+
+attributes:
+  job_name: churn_prediction
+  upstream_asset: transformed_customer_enrichment
+  demo_mode: true
+  databricks_workspace_url: null
+  cluster_id: null
