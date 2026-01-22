@@ -7,7 +7,7 @@ This demo showcases **a single Dagster deployment managing data orchestration ac
 ### Key Value Propositions
 
 1. **Single Deployment, Multiple Business Units** - One Dagster instance orchestrates pipelines for 3+ independent teams
-2. **Streaming-First Architecture** - 70% streaming workloads with observable assets for external Kafka/Event Hub streams
+2. **Streaming-First Architecture** - 70% streaming workloads with external assets for Kafka/Event Hub streams managed outside Dagster
 3. **Hybrid Cloud (AWS + Azure + On-Prem)** - S3, Synapse, Databricks, and legacy systems in one unified platform
 4. **Modern ETL Stack** - Matillion, dbt, Databricks, and Snowflake orchestration
 5. **Airflow Replacement** - Modern, asset-centric orchestration replacing fragmented Airflow instances
@@ -135,10 +135,11 @@ Kafka/Event Hub Stream
     fraud_predictions_claims_fraud (Databricks ML)
 ```
 
-**Observable Source Asset:** ⭐
-- `streaming_insurance_claims` - External Kafka/Event Hub stream (NOT materializable, only observable)
-  - Turns green from sensor observations, not from materialization
-  - Represents stream managed by external/legacy infrastructure
+**External Asset (AssetSpec):** ⭐
+- `streaming_insurance_claims` - External Kafka/Event Hub stream (managed outside Dagster, observable only)
+  - Defined using `dg.AssetSpec` to represent infrastructure you don't own
+  - Turns green from sensor observations, not from Dagster materialization
+  - Represents stream managed by external/legacy infrastructure team
 
 **Materializable Assets:**
 - `enriched_claims` - Claims enriched with Azure DW policy data (depends on streaming_insurance_claims)
@@ -149,7 +150,7 @@ Kafka/Event Hub Stream
 - `claims_freshness_trigger_sensor` - Triggers `enriched_claims` processing when fresh Kafka data is available
 
 **Highlights:**
-- **Observable Source Asset** - `streaming_insurance_claims` can't be materialized, only observed
+- **External Asset** - `streaming_insurance_claims` is defined with `AssetSpec` to represent external infrastructure
 - **Observation-Driven Freshness** - Asset turns green from sensor observations every 60s
 - **Stream Health Monitoring** - Track consumer lag, throughput, and health metrics
 - **Dual Orchestration** - Scheduled (hourly fallback) AND sensor-driven (reactive to fresh data)
@@ -293,29 +294,29 @@ This demonstrates how Dagster replaces **rigid Airflow DAGs** with **intelligent
 
 This demo emphasizes **streaming workloads** (70%) as the primary use case, with batch processing (30%) as secondary.
 
-### Asset Observations: Monitoring External Streaming Infrastructure
+### External Assets: Monitoring Infrastructure You Don't Own
 
-Many organizations have **existing streaming pipelines** they don't want to migrate immediately. Dagster's **sensors with asset observations** let you:
+Many organizations have **existing streaming pipelines** managed outside of Dagster. Dagster's **external assets with sensors** let you:
 
 1. **Monitor without managing** - Observe external Kafka/Flink/Spark Streaming jobs
 2. **Track health metrics** - Consumer lag, throughput, data freshness
 3. **Trigger downstream work** - React when fresh data is available
-4. **Maintain lineage** - Show dependencies on external streams in your lineage graph
+4. **Maintain lineage** - Show dependencies on external infrastructure in your lineage graph
 
 ### Insurance Beta Example
 
-**Observable Source Asset (NOT materializable):**
+**External Asset Definition (using AssetSpec):**
 ```python
-streaming_insurance_claims = dg.SourceAsset(
-    key=dg.AssetKey("streaming_insurance_claims"),
-    description="External Kafka stream (observable, not materializable)",
+streaming_insurance_claims = dg.AssetSpec(
+    key="streaming_insurance_claims",
+    description="External Kafka/Event Hub stream (managed outside Dagster)",
     group_name="insurance_beta",
-    tags={
-        "dagster/kind/kafka": "",
-        "dagster/kind/azure_event_hub": "",
-        "dagster/kind/streaming": ""
-    },
-    metadata={"source": "Kafka", "topic": "prod.insurance.claims.v1"}
+    kinds={"kafka", "azure_event_hub", "streaming"},
+    metadata={
+        "source": "External Kafka/Azure Event Hub",
+        "topic": "prod.insurance.claims.v1",
+        "managed_by": "External Infrastructure Team"
+    }
 )
 ```
 
@@ -354,10 +355,11 @@ def claims_freshness_trigger_sensor(context):
 
 ### Key Benefits
 
-- ✅ **Don't rip and replace** - Keep existing Kafka infrastructure
-- ✅ **Gradual migration** - Observe now, migrate later
+- ✅ **Don't rip and replace** - Keep existing infrastructure, monitor with external assets
+- ✅ **Gradual migration** - Observe now with `AssetSpec`, migrate later when ready
 - ✅ **Unified observability** - See external + Dagster-managed assets in one lineage graph
 - ✅ **Data-driven orchestration** - Trigger processing based on actual data availability
+- ✅ **Proper external asset modeling** - Use `AssetSpec` to represent infrastructure you don't own
 
 ---
 
