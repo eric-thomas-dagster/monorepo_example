@@ -85,9 +85,9 @@ Press `Ctrl+C` to stop both processes.
 4. **Materialize Assets** - Run a portfolio company asset and watch shared_analytics auto-trigger
 5. **Observations** - Check the observation sensor emitting health metrics on the external Kafka stream
 
-## Deploying to Dagster+ (Serverless)
+## Deploying to Dagster+
 
-This demo is designed for **Dagster+ Serverless** deployment. For Hybrid or other deployment types, you'll need to make the necessary configuration changes.
+This demo is designed for **Dagster+ Serverless with PEX** deployment. For Docker-based deployments, see the Docker deployment section below.
 
 ### Prerequisites
 
@@ -130,6 +130,86 @@ dagster-cloud serverless deploy-python-executable \
     --location-file dagster_cloud.yaml \
     --location-name fintech-alpha
 ```
+
+### Docker Deployments (Serverless or Hybrid)
+
+⚠️ **Important for Docker:** When using Docker instead of PEX, you must include the `shared` package in your Docker images. PEX automatically bundles local dependencies, but Docker requires explicit copying and installation.
+
+**Why this matters:**
+- All code locations depend on the `shared` package via `pyproject.toml`
+- PEX builds automatically include it
+- Docker builds need to explicitly COPY and install it
+
+#### Option 1: Single Dockerfile per Code Location
+
+Each code location needs a Dockerfile that copies and installs the `shared` package:
+
+```dockerfile
+# code_locations/fintech_alpha/Dockerfile
+FROM python:3.12-slim
+
+WORKDIR /opt/dagster/app
+
+# Install uv
+RUN pip install uv
+
+# Copy shared package (required dependency)
+COPY ../shared /opt/dagster/shared
+
+# Copy this code location
+COPY . /opt/dagster/app
+
+# Install shared, then this code location
+RUN cd /opt/dagster/shared && uv pip install --system . && \
+    cd /opt/dagster/app && uv pip install --system .
+
+ENV DAGSTER_MODULE_NAME=fintech_alpha.definitions
+
+CMD ["dagster", "code-server", "start", "-m", "${DAGSTER_MODULE_NAME}"]
+```
+
+**Build and deploy:**
+```bash
+# Build from repo root (important for COPY context)
+docker build -f code_locations/fintech_alpha/Dockerfile \
+    -t your-registry/fintech-alpha:latest .
+
+# Push to registry
+docker push your-registry/fintech-alpha:latest
+
+# Deploy using dg CLI
+cd code_locations/fintech_alpha
+dg plus deploy configure serverless  # or: hybrid --agent-platform k8s
+dg plus deploy build-and-push
+```
+
+#### Option 2: Single Dockerfile for All Locations (Simpler)
+
+Use one Dockerfile that installs the entire mono-repo:
+
+```dockerfile
+# Dockerfile (at repo root)
+FROM python:3.12-slim
+
+WORKDIR /opt/dagster/app
+
+RUN pip install uv
+
+# Copy entire mono-repo
+COPY . /opt/dagster/app
+
+# Install everything (all code locations + shared)
+RUN uv pip install --system -e .
+
+# Module name will be set at runtime
+CMD ["sh", "-c", "dagster code-server start -m ${DAGSTER_MODULE_NAME}"]
+```
+
+**Deploy with different module names:**
+- Set `DAGSTER_MODULE_NAME` to `fintech_alpha.definitions`, `insurance_beta.definitions`, etc.
+- In `dagster_cloud.yaml`, specify the module name for each location
+
+See `Dockerfile.example` and `code_locations/insurance_beta/Dockerfile.example` for complete examples.
 
 ## Demo Mode
 

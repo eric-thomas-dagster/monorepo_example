@@ -1,0 +1,27 @@
+# Example Dockerfile for insurance_beta code location
+# Includes the shared package from the mono-repo
+
+FROM python:3.12-slim
+
+# Set working directory
+WORKDIR /opt/dagster/app
+
+# Install uv for faster dependency management
+RUN pip install uv
+
+# Copy the shared package first (required dependency)
+COPY ../shared /opt/dagster/shared
+
+# Copy this code location
+COPY . /opt/dagster/app
+
+# Install dependencies including shared package
+# The pyproject.toml references ../shared, which we've copied to /opt/dagster/shared
+RUN cd /opt/dagster/shared && uv pip install --system . && \
+    cd /opt/dagster/app && uv pip install --system .
+
+# Set the module for Dagster to load
+ENV DAGSTER_MODULE_NAME=insurance_beta.definitions
+
+# Run the Dagster code server
+CMD ["dagster", "code-server", "start", "-m", "${DAGSTER_MODULE_NAME}"]
