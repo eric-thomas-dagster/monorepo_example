@@ -4,7 +4,7 @@ A demonstration of managing multiple independent data pipelines in a single Dags
 
 ## What This Demonstrates
 
-- **Multiple code locations** - 5 independent code locations in one workspace
+- **Multiple code locations** - 4 independent code locations in one workspace
 - **Cross-location dependencies** - Assets in one location depending on assets from other locations
 - **Reusable components** - Component-based architecture for building data pipelines
 - **External asset observability** - Monitoring Kafka/Event Hub streams managed outside Dagster
@@ -42,9 +42,6 @@ Healthcare data pipeline with HIPAA compliance.
 - HIPAA compliance transformations
 - Population health analytics
 
-### shared
-Common utilities and resources available to all code locations.
-
 ### shared_analytics
 Cross-company analytics demonstrating **cross-location lineage**.
 
@@ -81,7 +78,7 @@ Press `Ctrl+C` to stop both processes.
 
 ### What to Explore
 
-1. **Code Locations** - View all 5 locations in the UI
+1. **Code Locations** - View all 4 locations in the UI
 2. **Global Asset Lineage** - See cross-location dependencies in Assets → View global asset lineage
 3. **Automation** - Check Overview → Automation to see schedules, sensors, and automation conditions
 4. **Materialize Assets** - Run a portfolio company asset and watch shared_analytics auto-trigger
@@ -103,7 +100,7 @@ This demo is designed for **Dagster+ Serverless** deployment. For Hybrid or othe
 export DAGSTER_CLOUD_ORGANIZATION="your-org-name"
 export DAGSTER_CLOUD_API_TOKEN="your-api-token"
 
-# Deploy all 5 code locations
+# Deploy all 4 code locations
 ./deploy_to_dagster_plus.sh
 ```
 
@@ -111,7 +108,6 @@ This deploys using **PEX builds** (faster than Docker):
 - fintech-alpha
 - insurance-beta
 - healthcare-gamma
-- shared
 - shared-analytics
 
 View at: `https://your-org.dagster.cloud/prod`

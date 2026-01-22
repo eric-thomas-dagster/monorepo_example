@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Multi-Code Location Demo - Deploy to Dagster+
-# Deploys all 5 code locations using PEX builds (faster than Docker)
+# Deploys all 4 code locations using PEX builds (faster than Docker)
 
 set -e  # Exit on any error
 
@@ -34,7 +34,6 @@ declare -a LOCATIONS=(
     "fintech_alpha:fintech-alpha"
     "insurance_beta:insurance-beta"
     "healthcare_gamma:healthcare-gamma"
-    "shared:shared"
     "shared_analytics:shared-analytics"
 )
 
@@ -74,9 +73,8 @@ echo "View your deployment at:"
 echo "https://$ORGANIZATION.dagster.cloud/$DEPLOYMENT"
 echo ""
 echo "Code Locations:"
-echo "  ✓ fintech-alpha        (6 assets: S3 → Matillion → dbt → Databricks → Azure DW)"
-echo "  ✓ insurance-beta       (3 assets: Kafka → enrichment → fraud detection)"
-echo "  ✓ healthcare-gamma     (3 assets: EHR → HIPAA → analytics)"
-echo "  ✓ shared               (Common utilities)"
-echo "  ✓ shared-analytics     (4 assets: Consolidated cross-company analytics)"
+echo "  ✓ fintech-alpha        (S3 → Matillion → dbt → Databricks → Azure DW)"
+echo "  ✓ insurance-beta       (Kafka → enrichment → fraud detection)"
+echo "  ✓ healthcare-gamma     (EHR → HIPAA → analytics)"
+echo "  ✓ shared-analytics     (Consolidated cross-company analytics)"
 echo ""
