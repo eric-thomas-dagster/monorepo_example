@@ -423,30 +423,6 @@ def s3_raw_raw_customer_transactions(...):
 
 ---
 
-## Technology Coverage
-
-This demo demonstrates orchestration across:
-
-| Technology | Used By | Purpose |
-|------------|---------|---------|
-| **AWS S3** ⭐ | Fintech Alpha | Data lake storage |
-| **Matillion** ⭐ | Fintech Alpha | ETL transformations |
-| **Snowflake** | Fintech Alpha | Data warehousing |
-| **Azure Synapse** | Fintech Alpha, Insurance Beta | Warehousing & aggregation |
-| **Databricks** | Fintech Alpha, Insurance Beta | ML & analytics |
-| **dbt** | Fintech Alpha | Transformations |
-| **Kafka/Event Hub** ⭐ | Insurance Beta | Streaming ingestion (observable) |
-| **On-Prem Systems** | Healthcare Gamma | Legacy integration |
-| **Python** | All | Custom logic |
-
-### Hybrid Cloud Support
-- **AWS**: S3 data lake
-- **Azure**: Synapse Analytics, Event Hub
-- **On-Premises**: Legacy EHR systems
-
-This demonstrates Dagster's ability to orchestrate across **multiple clouds + on-prem** infrastructure.
-
----
 
 ## Getting Started
 
@@ -557,20 +533,39 @@ To switch to production mode:
 
 ## 🚀 Deploying to Dagster+
 
-### Quick Deploy (All 5 Code Locations)
+### Prerequisites
+
+Before deploying, you need:
+- A Dagster+ organization
+- A Dagster+ API token (get from Dagster+ UI → Organization Settings → Tokens)
+
+### Quick Deploy (All 5 Code Locations) - Serverless PEX Only
+
+⚠️ **Important:** This deployment script only works for **Dagster+ Serverless with PEX builds**. If you're using Hybrid deployment or want Docker-based deployments, see the sections below.
 
 ```bash
+# Set required environment variables
+export DAGSTER_CLOUD_ORGANIZATION="your-org-name"
+export DAGSTER_CLOUD_API_TOKEN="your-api-token"
+
+# Deploy all 5 code locations
 ./deploy_to_dagster_plus.sh
 ```
 
-This script deploys all 5 code locations to Dagster+ using **PEX builds** (faster than Docker):
+This script deploys all 5 code locations to Dagster+ Serverless using **PEX builds**:
 - `fintech-alpha` - Fintech pipeline
 - `insurance-beta` - Insurance streaming pipeline
 - `healthcare-gamma` - Healthcare pipeline
 - `shared` - Shared utilities
 - `shared-analytics` - Consolidated analytics
 
-### Manual Deploy (Single Code Location)
+**PEX Build Benefits:**
+- ✅ **Faster** - No Docker image build required
+- ✅ **Simpler** - Direct Python executable deployment
+- ✅ **Portable** - Self-contained Python environment
+- ✅ **Perfect for demos** - Quick iterations
+
+### Manual Deploy (Single Code Location) - Serverless PEX
 
 If you need to deploy just one code location:
 
@@ -583,6 +578,63 @@ dagster-cloud serverless deploy-python-executable \
     --deployment prod \
     --location-file dagster_cloud.yaml \
     --location-name fintech-alpha
+```
+
+### Hybrid Deployment
+
+For **Dagster+ Hybrid** (running on your own infrastructure):
+
+1. **Set up Hybrid agent** in your infrastructure (Kubernetes, ECS, Docker, etc.)
+   - Follow the [Hybrid deployment guide](https://docs.dagster.io/dagster-plus/deployment/hybrid)
+
+2. **Deploy with PEX:**
+```bash
+cd code_locations/fintech_alpha
+
+dagster-cloud hybrid deploy-python-executable \
+    --organization YOUR_ORG \
+    --api-token "YOUR_API_TOKEN" \
+    --deployment prod \
+    --location-file dagster_cloud.yaml \
+    --location-name fintech-alpha
+```
+
+3. **Deploy with Docker:**
+```bash
+cd code_locations/fintech_alpha
+
+# Build Docker image
+docker build -t fintech-alpha:latest .
+
+# Deploy to Dagster+ Hybrid
+dagster-cloud hybrid deploy-docker \
+    --organization YOUR_ORG \
+    --api-token "YOUR_API_TOKEN" \
+    --deployment prod \
+    --location-file dagster_cloud.yaml \
+    --location-name fintech-alpha \
+    --image fintech-alpha:latest
+```
+
+### Serverless with Docker
+
+For **Dagster+ Serverless with Docker images** (instead of PEX):
+
+```bash
+cd code_locations/fintech_alpha
+
+# Build and push Docker image to a registry (ECR, GCR, DockerHub, etc.)
+docker build -t your-registry/fintech-alpha:latest .
+docker push your-registry/fintech-alpha:latest
+
+# Deploy to Dagster+ Serverless
+dagster-cloud serverless deploy-docker \
+    --organization YOUR_ORG \
+    --api-token "YOUR_API_TOKEN" \
+    --deployment prod \
+    --location-file dagster_cloud.yaml \
+    --location-name fintech-alpha \
+    --image your-registry/fintech-alpha:latest
 ```
 
 ### Configuration Files
@@ -600,13 +652,6 @@ After deployment, view at:
 ```
 https://YOUR_ORG.dagster.cloud/prod
 ```
-
-### Benefits of PEX Builds
-
-- ✅ **Faster** - No Docker image build required
-- ✅ **Simpler** - Direct Python executable deployment
-- ✅ **Portable** - Self-contained Python environment
-- ✅ **Perfect for demos** - Quick iterations
 
 ---
 
@@ -712,54 +757,6 @@ monorepo_example/
 ├── pyproject.toml              # Root workspace config
 └── README.md                   # This file
 ```
-
----
-
-## Comparison: Before & After
-
-### Before Dagster (Current State)
-
-- **3 separate Airflow clusters** (one per company)
-- **Fragmented monitoring** - no unified view
-- **No cross-company lineage** - impact analysis impossible
-- **Duplicate work** - each company rebuilds similar pipelines
-- **High operational cost** - 3× infrastructure, 3× maintenance
-- **Slow onboarding** - new customers take months to integrate
-- **Limited observability** - Airflow UI per cluster
-
-### After Dagster (This Demo)
-
-- **1 unified Dagster deployment** managing all companies
-- **Shared observability** - global asset lineage graph
-- **Cross-company visibility** - understand dependencies
-- **Reusable components** - shared code location for common patterns
-- **Reduced operational cost** - single infrastructure footprint
-- **Rapid onboarding** - new customers in days using templates
-- **Modern UI** - beautiful, unified interface
-
----
-
-## Success Metrics
-
-Track these KPIs when presenting to clients:
-
-1. **Operational Efficiency**
-   - Infrastructure cost reduction: 60-70%
-   - Operations team productivity: 3× improvement
-
-2. **Time to Value**
-   - New customer onboarding: Months → Days
-   - New pipeline development: 2× faster with shared components
-
-3. **Reliability**
-   - Pipeline success rate: +15-20%
-   - Time to detect issues: 10× faster
-   - Time to resolve issues: 5× faster
-
-4. **Developer Experience**
-   - Lines of code to achieve outcome: 50% reduction
-   - Time to understand system: 70% faster
-   - Developer satisfaction: Significantly higher
 
 ---
 
