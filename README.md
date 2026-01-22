@@ -6,6 +6,7 @@ A demonstration of managing multiple independent data pipelines in a single Dags
 
 - **Multiple code locations** - 4 independent code locations in one workspace
 - **Cross-location dependencies** - Assets in one location depending on assets from other locations
+- **Shared resources pattern** - Common resources imported by all code locations from a shared package
 - **Reusable components** - Component-based architecture for building data pipelines
 - **External asset observability** - Monitoring Kafka/Event Hub streams managed outside Dagster
 - **Data-driven orchestration** - Sensors and automation conditions reacting to data availability
