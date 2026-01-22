@@ -567,11 +567,20 @@ This script deploys all 5 code locations to Dagster+ Serverless using **PEX buil
 
 ### Manual Deploy (Single Code Location) - Serverless PEX
 
-If you need to deploy just one code location:
+If you need to deploy just one code location with PEX:
 
 ```bash
 cd code_locations/fintech_alpha
 
+# Configure for Serverless (uses PEX by default)
+dg plus deploy configure serverless
+
+# Deploy
+dg plus deploy
+```
+
+Or using the legacy CLI:
+```bash
 dagster-cloud serverless deploy-python-executable \
     --organization YOUR_ORG \
     --api-token "YOUR_API_TOKEN" \
@@ -586,24 +595,65 @@ For **Dagster+ Hybrid** (running on your own infrastructure):
 
 ⚠️ **Note:** Hybrid deployment requires Docker images. PEX builds are not supported for Hybrid.
 
-1. **Set up Hybrid agent** in your infrastructure (Kubernetes, ECS, Docker, etc.)
-   - Follow the [Hybrid deployment guide](https://docs.dagster.io/dagster-plus/deployment/hybrid)
+#### Step 1: Set up Hybrid Agent
 
-2. **Deploy with Docker:**
+First, install the Dagster+ agent in your infrastructure:
+
+**Kubernetes:**
+```bash
+helm repo add dagster-cloud https://dagster-io.github.io/helm-user-cloud
+helm repo update
+
+helm --namespace dagster-cloud install agent \
+    dagster-cloud/dagster-cloud-agent \
+    --values ./values.yaml
+```
+
+**ECS or Docker:**
+- Follow the [Hybrid deployment guide](https://docs.dagster.io/dagster-plus/deployment/hybrid)
+
+#### Step 2: Configure Hybrid Deployment
+
+Navigate to a code location and configure for your platform:
+
+**For Kubernetes:**
 ```bash
 cd code_locations/fintech_alpha
 
-# Build Docker image
-docker build -t fintech-alpha:latest .
+# Configure for Kubernetes
+dg plus deploy configure hybrid --agent-platform k8s
+```
 
-# Deploy to Dagster+ Hybrid
-dagster-cloud hybrid deploy-docker \
-    --organization YOUR_ORG \
-    --api-token "YOUR_API_TOKEN" \
-    --deployment prod \
-    --location-file dagster_cloud.yaml \
-    --location-name fintech-alpha \
-    --image fintech-alpha:latest
+**For ECS:**
+```bash
+cd code_locations/fintech_alpha
+
+# Configure for ECS (replace with your ECR registry URL)
+dg plus deploy configure hybrid --agent-platform ecs \
+    --registry-url 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-repo
+```
+
+#### Step 3: Build and Push Docker Images
+
+```bash
+# Build Docker image and push to your configured registry
+dg plus deploy build-and-push
+```
+
+This will:
+- Build a Docker image for the code location
+- Push it to your configured container registry (ECR, GCR, DockerHub, etc.)
+- Deploy the code location to your Hybrid agent
+
+**Repeat for each code location:**
+```bash
+# Deploy all code locations
+for location in fintech_alpha insurance_beta healthcare_gamma shared shared_analytics; do
+    echo "Deploying $location..."
+    cd code_locations/$location
+    dg plus deploy build-and-push
+    cd ../..
+done
 ```
 
 ### Serverless with Docker
@@ -613,19 +663,14 @@ For **Dagster+ Serverless with Docker images** (instead of PEX):
 ```bash
 cd code_locations/fintech_alpha
 
-# Build and push Docker image to a registry (ECR, GCR, DockerHub, etc.)
-docker build -t your-registry/fintech-alpha:latest .
-docker push your-registry/fintech-alpha:latest
+# Configure for Serverless with Docker
+dg plus deploy configure serverless
 
-# Deploy to Dagster+ Serverless
-dagster-cloud serverless deploy-docker \
-    --organization YOUR_ORG \
-    --api-token "YOUR_API_TOKEN" \
-    --deployment prod \
-    --location-file dagster_cloud.yaml \
-    --location-name fintech-alpha \
-    --image your-registry/fintech-alpha:latest
+# Build Docker image and push to registry
+dg plus deploy build-and-push
 ```
+
+This will build a Docker image and deploy it to Dagster+ Serverless. The image is pushed to a container registry and referenced in your deployment.
 
 ### Configuration Files
 
