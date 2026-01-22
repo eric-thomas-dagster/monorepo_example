@@ -1,0 +1,9 @@
+type: insurance_beta.components.external_kafka_asset.ExternalKafkaAsset
+
+attributes:
+  asset_key: streaming_insurance_claims
+  topic: prod.insurance.claims.v1
+  broker: kafka.insurance-beta.internal:9092
+  event_hub_namespace: insurance-beta-eventhub
+  description: External Kafka/Event Hub stream for real-time insurance claims (managed outside Dagster)
+  group_name: insurance_beta

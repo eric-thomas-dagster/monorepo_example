@@ -1,0 +1,8 @@
+type: insurance_beta.components.streaming_freshness_sensor.StreamingFreshnessSensor
+
+attributes:
+  sensor_name: claims_freshness_trigger_sensor
+  target_assets:
+    - enriched_claims
+  check_interval_seconds: 120
+  demo_mode: true

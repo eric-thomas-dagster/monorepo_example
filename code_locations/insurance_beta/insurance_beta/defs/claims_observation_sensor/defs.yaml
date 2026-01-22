@@ -1,0 +1,9 @@
+type: insurance_beta.components.streaming_observation_sensor.StreamingObservationSensor
+
+attributes:
+  stream_name: insurance_claims
+  stream_topic: prod.insurance.claims.v1
+  check_interval_seconds: 60
+  demo_mode: true
+  kafka_broker: kafka.insurance-beta.internal:9092
+  event_hub_namespace: insurance-beta-eventhub
