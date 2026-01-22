@@ -140,9 +140,9 @@ dagster-cloud serverless deploy-python-executable \
 - PEX builds automatically include it
 - Docker builds need to explicitly COPY and install it
 
-#### Option 1: Single Dockerfile per Code Location
+#### Creating Dockerfiles for Each Code Location
 
-Each code location needs a Dockerfile that copies and installs the `shared` package:
+Each code location should have its own Dockerfile that includes the `shared` package:
 
 ```dockerfile
 # code_locations/fintech_alpha/Dockerfile
@@ -168,48 +168,37 @@ ENV DAGSTER_MODULE_NAME=fintech_alpha.definitions
 CMD ["dagster", "code-server", "start", "-m", "${DAGSTER_MODULE_NAME}"]
 ```
 
-**Build and deploy:**
+**Key points:**
+- Each code location gets its own Docker image
+- Build from repo root so `../shared` is in the build context
+- Install `shared` package first, then the code location
+
+#### Building and Deploying
+
+**Build from repo root:**
 ```bash
-# Build from repo root (important for COPY context)
+# Build from repo root (important for COPY ../shared context)
 docker build -f code_locations/fintech_alpha/Dockerfile \
     -t your-registry/fintech-alpha:latest .
 
 # Push to registry
 docker push your-registry/fintech-alpha:latest
+```
 
-# Deploy using dg CLI
+**Deploy using dg CLI:**
+```bash
 cd code_locations/fintech_alpha
 dg plus deploy configure serverless  # or: hybrid --agent-platform k8s
 dg plus deploy build-and-push
 ```
 
-#### Option 2: Single Dockerfile for All Locations (Simpler)
+**Repeat for each code location:**
+- fintech_alpha
+- insurance_beta
+- healthcare_gamma
+- shared_analytics
 
-Use one Dockerfile that installs the entire mono-repo:
-
-```dockerfile
-# Dockerfile (at repo root)
-FROM python:3.12-slim
-
-WORKDIR /opt/dagster/app
-
-RUN pip install uv
-
-# Copy entire mono-repo
-COPY . /opt/dagster/app
-
-# Install everything (all code locations + shared)
-RUN uv pip install --system -e .
-
-# Module name will be set at runtime
-CMD ["sh", "-c", "dagster code-server start -m ${DAGSTER_MODULE_NAME}"]
-```
-
-**Deploy with different module names:**
-- Set `DAGSTER_MODULE_NAME` to `fintech_alpha.definitions`, `insurance_beta.definitions`, etc.
-- In `dagster_cloud.yaml`, specify the module name for each location
-
-See `Dockerfile.example` and `code_locations/insurance_beta/Dockerfile.example` for complete examples.
+See `code_locations/insurance_beta/Dockerfile.example` for a complete working example.
 
 ## Demo Mode
 
